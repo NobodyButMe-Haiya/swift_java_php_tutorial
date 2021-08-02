@@ -1,7 +1,7 @@
 <?php
 /**
  * Simple CRUD - create read update delete
- * next simple_simplify will shorter all code this all first
+ * next simple_optimize will shorter all code this all first
  * @description
  *
  */
@@ -93,6 +93,13 @@ switch ((string)$mode) {
                 }
             }
             exit();
+        } else{
+            json_encode(
+                [
+                    "success"=>false,
+                    "message"=>"Access Denied"
+                ]
+            );
         }
 
         break;
@@ -254,6 +261,13 @@ switch ((string)$mode) {
                 }
             }
             exit();
+        } else{
+            json_encode(
+                [
+                    "success"=>false,
+                    "message"=>"Access Denied"
+                ]
+            );
         }
         break;
     case "delete":
@@ -331,6 +345,13 @@ switch ((string)$mode) {
                 }
             }
             exit();
+        } else{
+            json_encode(
+                [
+                    "success"=>false,
+                    "message"=>"Access Denied"
+                ]
+            );
         }
         break;
     default:
