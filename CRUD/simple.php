@@ -71,7 +71,7 @@ switch ((string)$mode) {
                 } else {
                     // now we gain access to connection and database. We make query  to insert to database
                     /// but somebody still scare if the value is not correct
-                    $statement = mysqli_prepare($connection, "INSERT INTO person VALUES (?, ?)");
+                    $statement = mysqli_prepare($connection, "INSERT INTO person VALUES (?, ?,?)");
                     // s -> string, i -> integer , d -  double , b - blob
                     mysqli_stmt_bind_param($statement, 'si', $name, $age);
                     $statement_result = mysqli_stmt_execute($statement);
@@ -124,7 +124,6 @@ switch ((string)$mode) {
             $database = mysqli_select_db($connection, $database);
 
             // but wait are we want insert record before everything insert
-            mysqli_begin_transaction($connection);
             if (!$database) {
                 echo json_encode(
                     [
@@ -162,7 +161,6 @@ switch ((string)$mode) {
                 }
             }
         }
-        exit();
         break;
     case "update":
         // everybody talking about sql injection but reality

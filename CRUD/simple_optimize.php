@@ -56,6 +56,7 @@ function create()
     global $name;
     global $age;
 
+    mysqli_autocommit($this->connection,false);
     $passTestName = 0;
     $passTestAge = 0;
 
@@ -69,11 +70,12 @@ function create()
     if ($passTestName == 1 && $passTestAge == 1) {
         // now we gain access to connection and database. We make query  to insert to database
         /// but somebody still scare if the value is not correct
-        $statement = mysqli_prepare($connection, "INSERT INTO person VALUES (?, ?)");
+        $statement = mysqli_prepare($connection, "INSERT INTO person VALUES (?, ?,?)");
         // s -> string, i -> integer , d -  double , b - blob
         mysqli_stmt_bind_param($statement, 'si', $name, $age);
         $statement_result = mysqli_stmt_execute($statement);
         if (!$statement_result) {
+            mysqli_commit($this->connection);
             echo json_encode(
                 [
                     "success" => false,
@@ -101,6 +103,32 @@ function create()
 function read()
 {
     access();
+    global $connection;
+
+    $data = [];
+    $sql = "SELECT * FROM person";
+    $result = mysqli_query($connection, $sql);
+    if (!$result) {
+        // something wrong to the query
+        echo json_encode(
+            [
+                "success" => false,
+                "message" => "Seem Query Error here"
+            ]
+        );
+    } else {
+        // now we generate code for read
+        while (($row = mysqli_fetch_array($result)) == TRUE) {
+            $data[] = $row;
+        }
+        echo json_encode(
+            [
+                "success" => true,
+                "message" => "Read",
+                "data" => $data
+            ]
+        );
+    }
 }
 
 function update()
@@ -110,6 +138,8 @@ function update()
     global $name;
     global $age;
     global $personId;
+
+    mysqli_autocommit($this->connection,false);
 
     $passTestName = 0;
     $passTestAge = 0;
@@ -131,6 +161,7 @@ function update()
         mysqli_stmt_bind_param($statement, 'si', $name, $age);
         $statement_result = mysqli_stmt_execute($statement);
         if (!$statement_result) {
+            mysqli_commit($connection);
             echo json_encode(
                 [
                     "success" => false,
@@ -173,6 +204,7 @@ function delete()
         mysqli_stmt_bind_param($statement, 'i', $personId);
         $statement_result = mysqli_stmt_execute($statement);
         if (!$statement_result) {
+            mysqli_commit($connection);
             echo json_encode(
                 [
                     "success" => false,
