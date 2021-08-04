@@ -10,12 +10,12 @@ header('Content-Type: application/json');
 
 // parameter database
 
-$servername = "localhost";
-$username = "username";
-$password = "password";
-$database = "database";
+$serverName = "localhost";
+$userName = "youtuber";
+$password = "123456";
+$database = "youtuber";
 
-$connection = mysqli_connect($servername, $username, $password);
+$connection = mysqli_connect($serverName, $userName, $password);
 $database = mysqli_select_db($connection, $database);
 
 // parameter from outside
@@ -69,7 +69,7 @@ function create()
     }
     if ($passTestName == 1 && $passTestAge == 1) {
         // now we gain access to connection and database. We make query  to insert to database
-        /// but somebody still scare if the value is not correct
+        /// but somebody still scares if the value is not correct
         $statement = mysqli_prepare($connection, "INSERT INTO person VALUES (?, ?,?)");
         // s -> string, i -> integer , d -  double , b - blob
         mysqli_stmt_bind_param($statement, 'si', $name, $age);
@@ -158,7 +158,7 @@ function update()
     if ($passTestName == 1 && $passTestAge == 1 && $passTestId == 1) {
         $statement = mysqli_prepare($connection, "UPDATE person SET name=?,age=? WHERE  personId = ?");
         // s -> string, i -> integer , d -  double , b - blob
-        mysqli_stmt_bind_param($statement, 'si', $name, $age);
+        mysqli_stmt_bind_param($statement, 'sii', $name, $age,$personId);
         $statement_result = mysqli_stmt_execute($statement);
         if (!$statement_result) {
             mysqli_commit($connection);
@@ -198,7 +198,7 @@ function delete()
     }
     if ($passTestId == 1) {
         // now we gain access to connection and database. We make query  to insert to database
-        /// but somebody still scare if the value is not correct
+        /// but somebody still scares if the value is not correct
         $statement = mysqli_prepare($connection, "DELETE FROM person WHERE personId = ? ");
         // s -> string, i -> integer , d -  double , b - blob
         mysqli_stmt_bind_param($statement, 'i', $personId);
