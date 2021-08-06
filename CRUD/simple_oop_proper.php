@@ -32,7 +32,7 @@ class ConnectionString
      * @param String $serverName
      * @return ConnectionString
      */
-    public function setServerName(String $serverName): ConnectionString
+    public function setServerName(string $serverName): ConnectionString
     {
         $this->serverName = $serverName;
         return $this;
@@ -50,7 +50,7 @@ class ConnectionString
      * @param String $userName
      * @return ConnectionString
      */
-    public function setUserName(String $userName): ConnectionString
+    public function setUserName(string $userName): ConnectionString
     {
         $this->userName = $userName;
         return $this;
@@ -68,7 +68,7 @@ class ConnectionString
      * @param String $password
      * @return ConnectionString
      */
-    public function setPassword(String $password): ConnectionString
+    public function setPassword(string $password): ConnectionString
     {
         $this->password = $password;
         return $this;
@@ -109,8 +109,6 @@ class PersonModel
      * @var int
      */
     private $age;
-
-
 
 
     /**
@@ -168,16 +166,20 @@ class PersonModel
     }
 
 }
+
 //
 
 /**
  * most common people will use enum for static value . php can be use interface or class
  * the point here to store one place all the string  value
  */
-interface  ReturnCode {
-   // const ACCESS_GRANTED = "200";
+interface  ReturnCode
+{
+    // const ACCESS_GRANTED = "200";
 
-    const ACCESS_DENIED = "400";
+    const CONNECTION_ERROR = "001";
+
+    const ACCESS_DENIED = 500;
 
     const CREATE_SUCCESS = 101;
 
@@ -186,7 +188,10 @@ interface  ReturnCode {
     const UPDATE_SUCCESS = 301;
 
     const DELETE_SUCCESS = 401;
+
+    const QUERY_FAILURE = 601;
 }
+
 class SimpleOopProper
 {
 
@@ -205,6 +210,7 @@ class SimpleOopProper
 
     /**
      * SimpleOop constructor.
+     * @throws Exception
      */
     function __construct()
     {
@@ -213,13 +219,19 @@ class SimpleOopProper
         $this->connectionString = new ConnectionString();
 
         // connection to the database
-        $this->connect();
+        try {
+            $this->connect();
+        } catch (Exception $exception) {
+            // the more proper is to send exception to a file list / or table and send to end user .System fail to access
+            throw new Exception($exception->getMessage(), ReturnCode::CONNECTION_ERROR);
+        }
         // all parameter value at here and bind to the model the value
         $this->setParameter();
     }
 
     /**
      * Connection to the database
+     * @throws Exception
      */
     function connect()
     {
@@ -229,8 +241,11 @@ class SimpleOopProper
         $this->connectionString->setUserName("youtuber");
         $this->connectionString->setPassword("123456");
         $this->connectionString->setDatabase("youtuber");
-
-        $this->connection = new mysqli($this->connectionString->getServerName(), $this->connectionString->getUserName(), $this->connectionString->getPassword(), $this->connectionString->getDatabase());
+        try {
+            $this->connection = new mysqli($this->connectionString->getServerName(), $this->connectionString->getUserName(), $this->connectionString->getPassword(), $this->connectionString->getDatabase());
+        } catch (Exception $exception) {
+            throw new Exception($exception);
+        }
     }
 
     /**
@@ -272,7 +287,7 @@ class SimpleOopProper
             try {
                 $statement->execute();
             } catch (Exception $exception) {
-                throw new Exception("Query Record Failed");
+                throw new Exception($exception->getMessage(), ReturnCode::QUERY_FAILURE);
             }
 
             $this->connection->commit();
@@ -297,7 +312,7 @@ class SimpleOopProper
         try {
             $result = $this->connection->query("SELECT * FROM person");
             $data = [];
-            while (($row = $result->fetch_array()) == TRUE) {
+            while (($row = $result->fetch_assoc()) == TRUE) {
                 $data[] = $row;
             }
             echo json_encode(
@@ -308,7 +323,7 @@ class SimpleOopProper
                 ]
             );
         } catch (Exception $exception) {
-            throw new Exception(ReturnCode::ACCESS_DENIED);
+            throw new Exception(ReturnCode::ACCESS_DENIED, ReturnCode::QUERY_FAILURE);
         }
     }
 
@@ -332,14 +347,14 @@ class SimpleOopProper
             try {
                 $statement->execute();
             } catch (Exception $exception) {
-                throw new Exception("Query Record Failed");
+                throw new Exception($exception->getMessage(), ReturnCode::QUERY_FAILURE);
             }
 
             $this->connection->commit();
             echo json_encode(
                 [
                     "success" => true,
-                    "message" => ReturnCode::UPDATE_SUCCESS
+                    "code" => ReturnCode::UPDATE_SUCCESS
                 ]
             );
 
@@ -367,14 +382,14 @@ class SimpleOopProper
             try {
                 $statement->execute();
             } catch (Exception $exception) {
-                throw new Exception("Query Record Failed");
+                throw new Exception($exception->getMessage(), ReturnCode::QUERY_FAILURE);
             }
 
             $this->connection->commit();
             echo json_encode(
                 [
                     "success" => true,
-                    "message" => ReturnCode::DELETE_SUCCESS
+                    "code" => ReturnCode::DELETE_SUCCESS
                 ]
             );
 
@@ -409,6 +424,7 @@ try {
 } catch (Exception $exception) {
     echo json_encode([
         "success" => false,
-        "message" => $exception->getMessage()
+        "message" => $exception->getMessage(),
+        "code" => $exception->getCode()
     ]);
 }

@@ -15,9 +15,7 @@ $userName = "youtuber";
 $password = "123456";
 $database = "youtuber";
 
-$connection = mysqli_connect($serverName, $userName, $password);
-$database = mysqli_select_db($connection, $database);
-
+$connection = mysqli_connect($serverName, $userName, $password,$database);
 // parameter from outside
 
 $name = filter_input(INPUT_POST, "name", FILTER_SANITIZE_STRING);
@@ -28,7 +26,6 @@ $mode = filter_input(INPUT_POST, "mode", FILTER_SANITIZE_STRING);
 function access()
 {
     global $connection;
-    global $database;
 
     if (!$connection) {
         echo json_encode(
@@ -37,16 +34,8 @@ function access()
                 "message" => "Server got connection issue"
             ]
         );
+        exit();
     }
-    if (!$database) {
-        echo json_encode(
-            [
-                "success" => false,
-                "message" => "Server got database issue"
-            ]
-        );
-    }
-    exit();
 }
 
 function create()
@@ -56,7 +45,7 @@ function create()
     global $name;
     global $age;
 
-    mysqli_autocommit($this->connection,false);
+    mysqli_autocommit($connection,false);
     $passTestName = 0;
     $passTestAge = 0;
 
@@ -75,7 +64,6 @@ function create()
         mysqli_stmt_bind_param($statement, 'si', $name, $age);
         $statement_result = mysqli_stmt_execute($statement);
         if (!$statement_result) {
-            mysqli_commit($this->connection);
             echo json_encode(
                 [
                     "success" => false,
@@ -83,6 +71,7 @@ function create()
                 ]
             );
         } else {
+            mysqli_commit($connection);
             echo json_encode(
                 [
                     "success" => true,
@@ -139,7 +128,7 @@ function update()
     global $age;
     global $personId;
 
-    mysqli_autocommit($this->connection,false);
+    mysqli_autocommit($connection,false);
 
     $passTestName = 0;
     $passTestAge = 0;
@@ -161,7 +150,6 @@ function update()
         mysqli_stmt_bind_param($statement, 'sii', $name, $age,$personId);
         $statement_result = mysqli_stmt_execute($statement);
         if (!$statement_result) {
-            mysqli_commit($connection);
             echo json_encode(
                 [
                     "success" => false,
@@ -169,6 +157,7 @@ function update()
                 ]
             );
         } else {
+            mysqli_commit($connection);
             echo json_encode(
                 [
                     "success" => true,
@@ -204,7 +193,6 @@ function delete()
         mysqli_stmt_bind_param($statement, 'i', $personId);
         $statement_result = mysqli_stmt_execute($statement);
         if (!$statement_result) {
-            mysqli_commit($connection);
             echo json_encode(
                 [
                     "success" => false,
@@ -212,6 +200,7 @@ function delete()
                 ]
             );
         } else {
+            mysqli_commit($connection);
             echo json_encode(
                 [
                     "success" => true,
@@ -229,6 +218,9 @@ function delete()
     }
 }
 
+header('Content-Type: application/json');
+
+$mode = filter_input(INPUT_POST, "mode", FILTER_SANITIZE_STRING);
 switch ($mode) {
     case  "create":
         create();

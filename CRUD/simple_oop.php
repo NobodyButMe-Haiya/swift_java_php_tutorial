@@ -167,7 +167,7 @@ class SimpleOop extends personTable
         try {
             $result = $this->connection->query("SELECT * FROM person");
             $data = [];
-            while (($row = $result->fetch_array()) == TRUE) {
+            while (($row = $result->fetch_assoc()) == TRUE) {
                 $data[] = $row;
             }
             echo json_encode(
