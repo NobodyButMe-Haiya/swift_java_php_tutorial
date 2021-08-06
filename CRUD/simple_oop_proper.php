@@ -1,9 +1,102 @@
 <?php
 
-
-class personTable
+class ConnectionString
 {
-    // you can separate the value and call
+
+    /**
+     * @var String
+     */
+    private $serverName;
+    /**
+     * @var String
+     */
+    private $userName;
+    /**
+     * @var String
+     */
+    private $password;
+    /**
+     * @var String
+     */
+    private $database;
+
+    /**
+     * @return String
+     */
+    public function getServerName(): string
+    {
+        return $this->serverName;
+    }
+
+    /**
+     * @param String $serverName
+     * @return ConnectionString
+     */
+    public function setServerName(String $serverName): ConnectionString
+    {
+        $this->serverName = $serverName;
+        return $this;
+    }
+
+    /**
+     * @return String
+     */
+    public function getUserName(): string
+    {
+        return $this->userName;
+    }
+
+    /**
+     * @param String $userName
+     * @return ConnectionString
+     */
+    public function setUserName(String $userName): ConnectionString
+    {
+        $this->userName = $userName;
+        return $this;
+    }
+
+    /**
+     * @return String
+     */
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    /**
+     * @param String $password
+     * @return ConnectionString
+     */
+    public function setPassword(String $password): ConnectionString
+    {
+        $this->password = $password;
+        return $this;
+    }
+
+    /**
+     * @return String
+     */
+    public function getDatabase(): string
+    {
+        return $this->database;
+    }
+
+    /**
+     * @param String $database
+     * @return ConnectionString
+     */
+    public function setDatabase(string $database): ConnectionString
+    {
+        $this->database = $database;
+        return $this;
+    }
+
+
+}
+
+class PersonModel
+{
     /**
      * @var int
      */
@@ -17,6 +110,9 @@ class personTable
      */
     private $age;
 
+
+
+
     /**
      * @return int
      */
@@ -27,9 +123,9 @@ class personTable
 
     /**
      * @param int $personId
-     * @return personTable
+     * @return personModel
      */
-    public function setPersonId(int $personId): personTable
+    public function setPersonId(int $personId): personModel
     {
         $this->personId = $personId;
         return $this;
@@ -45,9 +141,9 @@ class personTable
 
     /**
      * @param string $name
-     * @return personTable
+     * @return personModel
      */
-    public function setName(string $name): personTable
+    public function setName(string $name): personModel
     {
         $this->name = $name;
         return $this;
@@ -63,24 +159,45 @@ class personTable
 
     /**
      * @param int $age
-     * @return personTable
+     * @return personModel
      */
-    public function setAge(int $age): personTable
+    public function setAge(int $age): personModel
     {
         $this->age = $age;
         return $this;
     }
 
 }
+//
 
-// somebody will start thinking . what if we can extend personTable and database configuration same time . C ++ allowed it  but
-// not php not java  not c sharp. sometimes people will use interface and do injection .
-class SimpleOop extends personTable
+/**
+ * most common people will use enum for static value . php can be use interface or class
+ * the point here to store one place all the string  value
+ */
+interface  ReturnCode {
+   // const ACCESS_GRANTED = "200";
+
+    const ACCESS_DENIED = "400";
+
+    const CREATE_SUCCESS = 101;
+
+    const READ_SUCCESS = 201;
+
+    const UPDATE_SUCCESS = 301;
+
+    const DELETE_SUCCESS = 401;
+}
+class SimpleOopProper
 {
-    private $serverName;
-    private $userName;
-    private $password;
-    private $database;
+
+    /**
+     * @var ConnectionString
+     */
+    private $connectionString;
+    /**
+     * @var PersonModel
+     */
+    private $model;
     /**
      * @var mysqli
      */
@@ -91,28 +208,14 @@ class SimpleOop extends personTable
      */
     function __construct()
     {
-        // init value , this may diff with your setup. the proper is to create a file outside from the www folder so outsider
-        // cannot get access to the file .
-        $this->serverName = "localhost";
-        $this->userName = "youtuber";
-        $this->password = "123456";
-        $this->database = "youtuber";
+        // declare object / injection
+        $this->model = new PersonModel();
+        $this->connectionString = new ConnectionString();
+
+        // connection to the database
         $this->connect();
-
-        // since the scalar is really strict
-        $name = filter_input(INPUT_POST, "name", FILTER_SANITIZE_STRING);
-        $age = filter_input(INPUT_POST, "age", FILTER_SANITIZE_NUMBER_INT);
-        $personId = filter_input(INPUT_POST, "personId", FILTER_SANITIZE_NUMBER_INT);
-
-        if ($name && strlen($name) > 0) {
-            $this->setName($name);
-        }
-        if ($age && is_numeric($age)) {
-            $this->setAge($age);
-        }
-        if ($personId && is_numeric($personId)) {
-            $this->setPersonId($personId);
-        }
+        // all parameter value at here and bind to the model the value
+        $this->setParameter();
     }
 
     /**
@@ -120,7 +223,34 @@ class SimpleOop extends personTable
      */
     function connect()
     {
-        $this->connection = new mysqli($this->serverName, $this->userName, $this->password, $this->database);
+        // init value , this may diff with your setup. the proper is to create a file outside from the www folder so outsider
+        // cannot get access to the file .
+        $this->connectionString->setServerName("localhost");
+        $this->connectionString->setUserName("youtuber");
+        $this->connectionString->setPassword("123456");
+        $this->connectionString->setDatabase("youtuber");
+
+        $this->connection = new mysqli($this->connectionString->getServerName(), $this->connectionString->getUserName(), $this->connectionString->getPassword(), $this->connectionString->getDatabase());
+    }
+
+    /**
+     * Binding Web Parameter to model
+     */
+    function setParameter()
+    {
+        $name = filter_input(INPUT_POST, "name", FILTER_SANITIZE_STRING);
+        $age = filter_input(INPUT_POST, "age", FILTER_SANITIZE_NUMBER_INT);
+        $personId = filter_input(INPUT_POST, "personId", FILTER_SANITIZE_NUMBER_INT);
+
+        if ($name && strlen($name) > 0) {
+            $this->model->setName($name);
+        }
+        if ($age && is_numeric($age)) {
+            $this->model->setAge($age);
+        }
+        if ($personId && is_numeric($personId)) {
+            $this->model->setPersonId($personId);
+        }
     }
 
     /**
@@ -131,8 +261,8 @@ class SimpleOop extends personTable
         $this->connection->autocommit(false);
 
         // bind parameter required parameter not object value kinda weird
-        $var1 = $this->getName();
-        $var2 = $this->getAge();
+        $var1 = $this->model->getName();
+        $var2 = $this->model->getAge();
 
         if (strlen($var1) > 0 && $var2 > 0) {
             /// but somebody still scares if the value is not correct or idiom sql injection
@@ -149,12 +279,12 @@ class SimpleOop extends personTable
             echo json_encode(
                 [
                     "success" => true,
-                    "message" => "Query Record work !"
+                    "code" => ReturnCode::CREATE_SUCCESS
                 ]
             );
 
         } else {
-            throw new Exception("Access Denied");
+            throw new Exception(ReturnCode::ACCESS_DENIED);
         }
     }
 
@@ -173,12 +303,12 @@ class SimpleOop extends personTable
             echo json_encode(
                 [
                     "success" => true,
-                    "message" => "Read",
+                    "code" => ReturnCode::READ_SUCCESS,
                     "data" => $data
                 ]
             );
-        }catch (Exception $exception){
-            throw new Exception("Cannot read query");
+        } catch (Exception $exception) {
+            throw new Exception(ReturnCode::ACCESS_DENIED);
         }
     }
 
@@ -190,9 +320,9 @@ class SimpleOop extends personTable
         $this->connection->autocommit(false);
 
         // bind parameter required parameter not object value kinda weird
-        $var1 = $this->getName();
-        $var2 = $this->getAge();
-        $var3 = $this->getPersonId();
+        $var1 = $this->model->getName();
+        $var2 = $this->model->getAge();
+        $var3 = $this->model->getPersonId();
 
         if (strlen($var1) > 0 && $var2 > 0 && $var3 > 0) {
             /// but somebody still scares if the value is not correct or idiom sql injection
@@ -209,12 +339,12 @@ class SimpleOop extends personTable
             echo json_encode(
                 [
                     "success" => true,
-                    "message" => "Query Update work !"
+                    "message" => ReturnCode::UPDATE_SUCCESS
                 ]
             );
 
         } else {
-            throw new Exception("Access Denied");
+            throw new Exception(ReturnCode::ACCESS_DENIED);
         }
     }
 
@@ -226,7 +356,7 @@ class SimpleOop extends personTable
         $this->connection->autocommit(false);
 
         // bind parameter required parameter not object value kinda weird
-        $var1 = $this->getPersonId();
+        $var1 = $this->model->getPersonId();
 
         if ($var1 > 0) {
             /// but somebody still scares if the value is not correct or idiom sql injection
@@ -244,12 +374,12 @@ class SimpleOop extends personTable
             echo json_encode(
                 [
                     "success" => true,
-                    "message" => "Query Delete work !"
+                    "message" => ReturnCode::DELETE_SUCCESS
                 ]
             );
 
         } else {
-            throw new Exception("Access Denied");
+            throw new Exception(ReturnCode::ACCESS_DENIED);
         }
     }
 }
@@ -258,23 +388,23 @@ header('Content-Type: application/json');
 
 $mode = filter_input(INPUT_POST, "mode", FILTER_SANITIZE_STRING);
 
-$simpleOop = new SimpleOop();
+$simpleOopProper = new SimpleOopProper();
 try {
     switch ($mode) {
         case  "create":
-            $simpleOop->create();
+            $simpleOopProper->create();
             break;
         case  "read":
-            $simpleOop->read();
+            $simpleOopProper->read();
             break;
         case  "update":
-            $simpleOop->update();
+            $simpleOopProper->update();
             break;
         case  "delete":
-            $simpleOop->delete();
+            $simpleOopProper->delete();
             break;
         default:
-            throw new Exception("Cannot identified mode");
+            throw new Exception(ReturnCode::ACCESS_DENIED);
     }
 } catch (Exception $exception) {
     echo json_encode([

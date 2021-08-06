@@ -1,254 +1,318 @@
 <?php
 /**
  * Simple CRUD - create read update delete
- * next simple_oop will be structured oop
+ * next simple_optimize will shorter all code this all first
  * @description
  *
  */
-
 header('Content-Type: application/json');
+$mode = filter_input(INPUT_POST, "mode", FILTER_SANITIZE_STRING);
 
-// parameter database
-
+// reality you can put one place the database parameter on top
 $serverName = "localhost";
 $userName = "youtuber";
 $password = "123456";
 $database = "youtuber";
 
-$connection = mysqli_connect($serverName, $userName, $password);
-$database = mysqli_select_db($connection, $database);
+$connection = mysqli_connect($serverName, $userName, $password, $database);
 
-// parameter from outside
-
+// parameter from outside can also be up here
 $name = filter_input(INPUT_POST, "name", FILTER_SANITIZE_STRING);
 $age = filter_input(INPUT_POST, "age", FILTER_SANITIZE_NUMBER_INT);
 $personId = filter_input(INPUT_POST, "personId", FILTER_SANITIZE_NUMBER_INT);
-$mode = filter_input(INPUT_POST, "mode", FILTER_SANITIZE_STRING);
 
-function access()
-{
-    global $connection;
-    global $database;
+switch ((string)$mode) {
+    case "create":
+        // everybody talking about sql injection but reality
 
-    if (!$connection) {
-        echo json_encode(
-            [
-                "success" => false,
-                "message" => "Server got connection issue"
-            ]
-        );
-    }
-    if (!$database) {
-        echo json_encode(
-            [
-                "success" => false,
-                "message" => "Server got database issue"
-            ]
-        );
-    }
-    exit();
-}
 
-function create()
-{
-    access();
-    global $connection;
-    global $name;
-    global $age;
+        // Are the name is pure string result ?
+        $passTestName = 0;
+        $passTestAge = 0;
+        if (is_string($name)) {
+            // echo "Yes i'm a string";
+            $passTestName = 1;
+        }
+        // Are the age variable are pure string result ?
+        if (is_numeric($age)) {
+            //  echo "Yes i'm numeric";
+            $passTestAge = 1;
+        }
+        if ($passTestName == 1 && $passTestAge == 1) {
+            // are we need to cast string before or after (String)  or (Age) ?
+            // let's check it via  var dump
+            //    var_dump($name);
 
-    mysqli_autocommit($this->connection,false);
-    $passTestName = 0;
-    $passTestAge = 0;
+            //    var_dump($age);
 
-    if (is_string($name)) {
-        $passTestName = 1;
-    }
-    // Are the age variable are pure string result ?
-    if (is_numeric($age)) {
-        $passTestAge = 1;
-    }
-    if ($passTestName == 1 && $passTestAge == 1) {
-        // now we gain access to connection and database. We make query  to insert to database
-        /// but somebody still scares if the value is not correct
-        $statement = mysqli_prepare($connection, "INSERT INTO person VALUES (?, ?,?)");
-        // s -> string, i -> integer , d -  double , b - blob
-        mysqli_stmt_bind_param($statement, 'si', $name, $age);
-        $statement_result = mysqli_stmt_execute($statement);
-        if (!$statement_result) {
-            mysqli_commit($this->connection);
+            // if we scare we can just cast it
+
+            $name = (string)$name;
+            $age = (int)$age;
+
+            // now we connect to our database  and insert record
+
+
+            // since it was simple not oop, so we catch the error manually
+            if (!$connection) {
+                echo json_encode(
+                    [
+                        "success" => false,
+                        "message" => "Server got connection issue"
+                    ]
+                );
+            } else {
+                // now we have connection , we select the database
+
+
+                mysqli_begin_transaction($connection);
+
+                // now we gain access to connection and database. We make query  to insert to database
+                $statement = mysqli_prepare($connection, "INSERT INTO person VALUES (NULL,?, ?)");
+                // s -> string, i -> integer , d -  double , b - blob
+                mysqli_stmt_bind_param($statement, 'si', $name, $age);
+                // do remind , even if the transaction is failure , abandon . the auto increment still increase
+                $statement_result = mysqli_stmt_execute($statement);
+
+                if (!$statement_result) {
+
+                    echo json_encode(
+                        [
+                            "success" => false,
+                            "message" => "Query Record failed",
+                            "name" => $name,
+                            "age" => $age
+                        ]
+                    );
+                } else {
+                    // if nothing wrong we commit to the database
+                    mysqli_commit($connection);
+                    echo json_encode(
+                        [
+                            "success" => true,
+                            "message" => "Query Record work !",
+                            "affectedRows" => mysqli_stmt_affected_rows($statement)
+                        ]
+                    );
+                }
+
+            }
+            exit();
+        } else {
+            json_encode(
+                [
+                    "success" => false,
+                    "message" => "Access Denied"
+                ]
+            );
+        }
+
+        break;
+    case "read":
+
+        // since it was simple not oop, so we catch the error manually
+        if (!$connection) {
             echo json_encode(
                 [
                     "success" => false,
-                    "message" => "Query Record failed"
+                    "message" => "Server got connection issue"
                 ]
             );
         } else {
-            echo json_encode(
-                [
-                    "success" => true,
-                    "message" => "Query Record work !"
-                ]
-            );
+
+
+                $data = [];
+                $sql = "SELECT * FROM person";
+                $result = mysqli_query($connection, $sql);
+                if (!$result) {
+                    // something wrong to the query
+                    echo json_encode(
+                        [
+                            "success" => false,
+                            "message" => "Seem Query Error here"
+                        ]
+                    );
+                } else {
+                    // now we generate code for read
+                    while (($row = mysqli_fetch_assoc($result)) == TRUE) {
+                        $data[] = $row;
+                    }
+                    echo json_encode(
+                        [
+                            "success" => true,
+                            "message" => "Read",
+                            "data" => $data
+                        ]
+                    );
+                }
+
         }
-    } else {
-        json_encode(
-            [
-                "success" => false,
-                "message" => "Access Denied"
-            ]
-        );
-    }
-}
+        break;
+    case "update":
 
-function read()
-{
-    access();
-    global $connection;
 
-    $data = [];
-    $sql = "SELECT * FROM person";
-    $result = mysqli_query($connection, $sql);
-    if (!$result) {
-        // something wrong to the query
-        echo json_encode(
-            [
-                "success" => false,
-                "message" => "Seem Query Error here"
-            ]
-        );
-    } else {
-        // now we generate code for read
-        while (($row = mysqli_fetch_array($result)) == TRUE) {
-            $data[] = $row;
+        // Are the name is pure string result ?
+        $passTestName = 0;
+        $passTestAge = 0;
+        $passTestId = 0;
+
+        if (is_string($name)) {
+            //  echo "Yes i'm a string";
+            $passTestName = 1;
         }
-        echo json_encode(
-            [
-                "success" => true,
-                "message" => "Read",
-                "data" => $data
-            ]
-        );
-    }
-}
+        // Are the age variable are pure int result ?
+        if (is_numeric($age)) {
+            //    echo "Yes i'm numeric";
+            $passTestAge = 1;
+        }
 
-function update()
-{
-    access();
-    global $connection;
-    global $name;
-    global $age;
-    global $personId;
+        // Are the id variable are pure int result ?
+        if (is_numeric($personId)) {
+            //    echo "Yes i'm numeric";
+            $passTestId = 1;
+        }
 
-    mysqli_autocommit($this->connection,false);
+        if ($passTestName == 1 && $passTestAge == 1 && $passTestId == 1) {
+            // are we need to cast string before or after (String)  or (Age) ?
+            // let's check it via  var dump
+            //    var_dump($name);
 
-    $passTestName = 0;
-    $passTestAge = 0;
+            //      var_dump($age);
 
-    if (is_string($name)) {
-        $passTestName = 1;
-    }
-    // Are the age variable are pure string result ?
-    if (is_numeric($age)) {
-        $passTestAge = 1;
-    }
-    $passTestId = 0;
-    if (is_numeric($personId)) {
-        $passTestId = 1;
-    }
-    if ($passTestName == 1 && $passTestAge == 1 && $passTestId == 1) {
-        $statement = mysqli_prepare($connection, "UPDATE person SET name=?,age=? WHERE  personId = ?");
-        // s -> string, i -> integer , d -  double , b - blob
-        mysqli_stmt_bind_param($statement, 'sii', $name, $age,$personId);
-        $statement_result = mysqli_stmt_execute($statement);
-        if (!$statement_result) {
-            mysqli_commit($connection);
-            echo json_encode(
+            //       var_dump($personId);
+
+            // if we scare we can just cast it
+
+            $name = (string)$name;
+            $age = (int)$age;
+            $personId = (int)$personId;
+
+
+            // since it was simple not oop, so we catch the error manually
+            if (!$connection) {
+                echo json_encode(
+                    [
+                        "success" => false,
+                        "message" => "Server got connection issue"
+                    ]
+                );
+            } else {
+
+                // but wait are we want insert record before everything insert
+                mysqli_begin_transaction($connection);
+
+                // now we gain access to connection and database. We make query  to insert to database
+                /// but somebody still scares if the value is not correct
+                $statement = mysqli_prepare($connection, "UPDATE person SET name=?,age=? WHERE  personId = ?");
+                // s -> string, i -> integer , d -  double , b - blob
+                mysqli_stmt_bind_param($statement, 'sii', $name, $age, $personId);
+                $statement_result = mysqli_stmt_execute($statement);
+                if (!$statement_result) {
+                    echo json_encode(
+                        [
+                            "success" => false,
+                            "message" => "Query Update failed"
+                        ]
+                    );
+                } else {
+                    // if nothing wrong we commit to the database
+                    mysqli_commit($connection);
+                    echo json_encode(
+                        [
+                            "success" => true,
+                            "message" => "Query Update work !",
+                            "affectedRows" => mysqli_stmt_affected_rows($statement)
+                        ]
+                    );
+                }
+
+            }
+            exit();
+        } else {
+            json_encode(
                 [
                     "success" => false,
-                    "message" => "Query Update failed"
-                ]
-            );
-        } else {
-            echo json_encode(
-                [
-                    "success" => true,
-                    "message" => "Query Update work !"
+                    "message" => "Access Denied"
                 ]
             );
         }
-    } else {
-        json_encode(
-            [
-                "success" => false,
-                "message" => "Access Denied"
-            ]
-        );
-    }
-}
+        break;
+    case "delete":
+        // everybody talking about sql injection but reality
 
-function delete()
-{
-    access();
-    global $connection;
-    global $personId;
-    // Are the id variable are pure numeric result ?
-    $passTestId = 0;
-    if (is_numeric($personId)) {
-        $passTestId = 1;
-    }
-    if ($passTestId == 1) {
-        // now we gain access to connection and database. We make query  to insert to database
-        /// but somebody still scares if the value is not correct
-        $statement = mysqli_prepare($connection, "DELETE FROM person WHERE personId = ? ");
-        // s -> string, i -> integer , d -  double , b - blob
-        mysqli_stmt_bind_param($statement, 'i', $personId);
-        $statement_result = mysqli_stmt_execute($statement);
-        if (!$statement_result) {
-            mysqli_commit($connection);
-            echo json_encode(
+        // Are the id variable are pure numeric result ?
+        $passTestId = 0;
+        if (is_numeric($personId)) {
+            //  echo "Yes i'm numeric";
+            $passTestId = 1;
+
+        }
+        if ($passTestId == 1) {
+            // are we need to cast string before or after (int) ?
+            // let's check it via  var dump
+            //    var_dump($personId);
+
+            // if we scare we can just cast it
+
+            $personId = (int)$personId;
+
+            // since it was simple not oop, so we catch the error manually
+            if (!$connection) {
+                echo json_encode(
+                    [
+                        "success" => false,
+                        "message" => "Server got connection issue"
+                    ]
+                );
+            } else {
+                // now we have connection , we select the database
+                $database = mysqli_select_db($connection, $database);
+
+                // but wait are we want insert record before everything insert
+                mysqli_begin_transaction($connection);
+
+                // now we gain access to connection and database. We make query  to insert to database
+                /// but somebody still scares if the value is not correct
+                $statement = mysqli_prepare($connection, "DELETE FROM person WHERE personId = ? ");
+                // s -> string, i -> integer , d -  double , b - blob
+                mysqli_stmt_bind_param($statement, 'i', $personId);
+                $statement_result = mysqli_stmt_execute($statement);
+                if (!$statement_result) {
+                    echo json_encode(
+                        [
+                            "success" => false,
+                            "message" => "Query Delete failed"
+                        ]
+                    );
+                } else {
+                    // if nothing wrong we commit to the database
+                    mysqli_commit($connection);
+                    echo json_encode(
+                        [
+                            "success" => true,
+                            "message" => "Query Delete work !",
+                            "affectedRows" => mysqli_stmt_affected_rows($statement)
+                        ]
+                    );
+                }
+
+            }
+            exit();
+        } else {
+            json_encode(
                 [
                     "success" => false,
-                    "message" => "Query Delete failed"
-                ]
-            );
-        } else {
-            echo json_encode(
-                [
-                    "success" => true,
-                    "message" => "Query Delete work !"
+                    "message" => "Access Denied"
                 ]
             );
         }
-    } else {
-        json_encode(
-            [
-                "success" => false,
-                "message" => "Access Denied"
-            ]
-        );
-    }
-}
-
-switch ($mode) {
-    case  "create":
-        create();
-        break;
-    case  "read":
-        read();
-        break;
-    case  "update":
-        update();
-        break;
-    case  "delete":
-        delete();
         break;
     default:
         echo json_encode([
             "success" => false,
-            "message" => "Cannot identified mode"
+            "message" => "Cannot identified mode",
+            "mode" => $mode
         ]);
-
         break;
-
 }
 
