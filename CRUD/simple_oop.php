@@ -108,10 +108,14 @@ class SimpleOop extends personTable
             $this->setName($name);
         }
         if ($age && is_numeric($age)) {
-            $this->setAge($age);
+            if ($age > 0) {
+                $this->setAge($age);
+            }
         }
         if ($personId && is_numeric($personId)) {
-            $this->setPersonId($personId);
+            if ($personId > 0) {
+                $this->setPersonId($personId);
+            }
         }
     }
 
@@ -177,7 +181,7 @@ class SimpleOop extends personTable
                     "data" => $data
                 ]
             );
-        }catch (Exception $exception){
+        } catch (Exception $exception) {
             throw new Exception("Cannot read query");
         }
     }
