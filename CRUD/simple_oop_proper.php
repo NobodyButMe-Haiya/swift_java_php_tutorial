@@ -179,6 +179,8 @@ interface  ReturnCode
 
     const CONNECTION_ERROR = "001";
 
+    const ACCESS_DENIED_NO_MODE = "Cannot identify mode ";
+
     const ACCESS_DENIED = 500;
 
     const CREATE_SUCCESS = 101;
@@ -261,10 +263,14 @@ class SimpleOopProper
             $this->model->setName($name);
         }
         if ($age && is_numeric($age)) {
-            $this->model->setAge($age);
+            if ($age > 0) {
+                $this->model->setAge($age);
+            }
         }
         if ($personId && is_numeric($personId)) {
-            $this->model->setPersonId($personId);
+            if ($personId > 0) {
+                $this->model->setPersonId($personId);
+            }
         }
     }
 
@@ -337,11 +343,13 @@ class SimpleOopProper
         // bind parameter required parameter not object value kinda weird
         $var1 = $this->model->getName();
         $var2 = $this->model->getAge();
+        // the more proper is to hash the id  , so hijacker wouldn't know the value , doesn't matter it was md5 with salt or sha1  or
+        // random encryption
         $var3 = $this->model->getPersonId();
 
         if (strlen($var1) > 0 && $var2 > 0 && $var3 > 0) {
             /// but somebody still scares if the value is not correct or idiom sql injection
-            $statement = $this->connection->prepare("UPDATE person SET name=?,age=? WHERE  personId = ?");
+            $statement = $this->connection->prepare("UPDATE person SET name = ?,age = ? WHERE  personId = ?");
             // s -> string, i -> integer , d -  double , b - blob
             $statement->bind_param("sii", $var1, $var2, $var3);
             try {
@@ -419,7 +427,7 @@ try {
             $simpleOopProper->delete();
             break;
         default:
-            throw new Exception(ReturnCode::ACCESS_DENIED);
+            throw new Exception(ReturnCode::ACCESS_DENIED_NO_MODE, ReturnCode::ACCESS_DENIED);
     }
 } catch (Exception $exception) {
     echo json_encode([
