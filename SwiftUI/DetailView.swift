@@ -10,7 +10,7 @@ struct DetailView: View {
     @State private var errorAlert: Bool = false
     var body: some View {
         ZStack {
-            Color.gray.opacity(0.1).edgesIgnoringSafeArea(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/)
+            Color.gray.opacity(0.1).edgesIgnoringSafeArea(.all)
             NavigationLink(destination: NavigationLazyView(ListDataView()), tag: "home", selection: $selection) { EmptyView() }.isDetailLink(false)
             
             VStack(alignment: .leading) {
@@ -45,7 +45,7 @@ struct DetailView: View {
                         let successString = "true";
                         
                         // start processing save
-                        let prefixUrl = "https://sponline.xyz/crud/simple_oop_proper.php"
+                        let prefixUrl = "your server here"
                         
                         let url = URL(string: prefixUrl)!
                         var request = URLRequest(url: url)
@@ -53,15 +53,11 @@ struct DetailView: View {
                         
                         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
                         if  personId.isEmpty  {
-                            
-                            
                             components.queryItems = [
                                 URLQueryItem(name: "name", value: name),
                                 URLQueryItem(name: "age", value: String(age)),
                                 URLQueryItem(name: "mode", value: "create")
                             ]
-                            
-                            
                         }else {
                             // update record
                             components.queryItems = [
@@ -107,13 +103,13 @@ struct DetailView: View {
                         Text("Save")
                     }) )
         }.alert(isPresented: $errorAlert, content: {
-            Alert(title: Text("System"), message: Text("System had difficulity to conenct the server . Please try again dear."))
+            Alert(title: Text("System"), message: Text("System had difficulty to connect the server . Please try again dear."))
         }) // end vstack
     }
  // end zStack
 }
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
-        DetailView(name: "myname",  age: "12", personId: "12")
+        DetailView(name: "John",  age: "12", personId: "12")
     }
 }
