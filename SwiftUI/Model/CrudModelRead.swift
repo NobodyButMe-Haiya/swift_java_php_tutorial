@@ -11,12 +11,11 @@ import SwiftUI
 struct CrudModelRead:Decodable {
     let success:Bool
     let code:Int
-    let message:String
     let data:[DataModel]
 }
 struct DataModel:Decodable {
-    let personId:Int
+    let personId:String
     let name:String
-    let age:Int
+    let age:String
 }
 

@@ -349,6 +349,8 @@ class SimpleOopProper
 
         if (strlen($var1) > 0 && $var2 > 0 && $var3 > 0) {
             /// but somebody still scares if the value is not correct or idiom sql injection
+            /// whatever we must check record existed before updating
+            ///
             $statement = $this->connection->prepare("UPDATE person SET name = ?,age = ? WHERE  personId = ?");
             // s -> string, i -> integer , d -  double , b - blob
             $statement->bind_param("sii", $var1, $var2, $var3);
@@ -384,6 +386,9 @@ class SimpleOopProper
         if ($var1 > 0) {
             /// but somebody still scares if the value is not correct or idiom sql injection
             /// the proper is not delete the record but flag it
+
+            /// whatever we must check record existed before deleting
+            ///
             $statement = $this->connection->prepare("DELETE FROM person WHERE personId = ? ");
             // s -> string, i -> integer , d -  double , b - blob
             $statement->bind_param("i", $var1);
@@ -411,28 +416,46 @@ header('Content-Type: application/json');
 
 $mode = filter_input(INPUT_POST, "mode", FILTER_SANITIZE_STRING);
 
+$mode_get = filter_input(INPUT_GET, "mode_get", FILTER_SANITIZE_STRING);
+
 $simpleOopProper = new SimpleOopProper();
-try {
-    switch ($mode) {
-        case  "create":
-            $simpleOopProper->create();
-            break;
-        case  "read":
-            $simpleOopProper->read();
-            break;
-        case  "update":
-            $simpleOopProper->update();
-            break;
-        case  "delete":
-            $simpleOopProper->delete();
-            break;
-        default:
-            throw new Exception(ReturnCode::ACCESS_DENIED_NO_MODE, ReturnCode::ACCESS_DENIED);
+if($mode_get) {
+    try {
+        switch ($mode_get) {
+            case  "read":
+                $simpleOopProper->read();
+                break;
+        }
+    } catch (Exception $exception) {
+        echo json_encode([
+            "success" => false,
+            "message" => "lol".$exception->getMessage(),
+            "code" => $exception->getCode()
+        ]);
     }
-} catch (Exception $exception) {
-    echo json_encode([
-        "success" => false,
-        "message" => $exception->getMessage(),
-        "code" => $exception->getCode()
-    ]);
+}else {
+    try {
+        switch ($mode) {
+            case  "create":
+                $simpleOopProper->create();
+                break;
+            case  "read":
+                $simpleOopProper->read();
+                break;
+            case  "update":
+                $simpleOopProper->update();
+                break;
+            case  "delete":
+                $simpleOopProper->delete();
+                break;
+            default:
+                throw new Exception(ReturnCode::ACCESS_DENIED_NO_MODE, ReturnCode::ACCESS_DENIED);
+        }
+    } catch (Exception $exception) {
+        echo json_encode([
+            "success" => false,
+            "message" => "post".$exception->getMessage(),
+            "code" => $exception->getCode()
+        ]);
+    }
 }

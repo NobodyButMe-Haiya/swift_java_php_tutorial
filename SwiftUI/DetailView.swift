@@ -1,10 +1,3 @@
-//
-//  DetailView .swift
-//  swiftui_crud
-//
-//  Created by Hafizan Aziz on 08/08/2021.
-//
-
 import SwiftUI
 import Combine
 import Foundation
@@ -18,7 +11,7 @@ struct DetailView: View {
     var body: some View {
         ZStack {
             Color.gray.opacity(0.1).edgesIgnoringSafeArea(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/)
-            NavigationLink(destination: NavigationLazyView(ContentView()), tag: "home", selection: $selection) { EmptyView() }.isDetailLink(false)
+            NavigationLink(destination: NavigationLazyView(ListDataView()), tag: "home", selection: $selection) { EmptyView() }.isDetailLink(false)
             
             VStack(alignment: .leading) {
                 TextField("Name",text:$name)
@@ -40,18 +33,19 @@ struct DetailView: View {
                         }
                     }
                 Spacer()
-            }.navigationTitle("Edit Post")
-            .navigationBarItems(
-                leading: Button(action: {
-                    // go back to previous page
-                    selection = "home"
-                },label :{
-                    Text("Cancel")
-                }) ,trailing:
+            }.navigationBarTitle("Create / Post ", displayMode: .inline).navigationBarBackButtonHidden(true)
+            .navigationBarItems(leading:Button(action: {
+                selection = "home"
+            }, label: {
+                Image(systemName: "house")
+            }),trailing:
                     Button(action: {
-                        // seperation is cool but much easier like this
+                        
+                        let errorString = "false";
+                        let successString = "true";
+                        
                         // start processing save
-                        let prefixUrl = "https://192.168.0.154/SP%20YOUTUBER/php%20base/CRUD/simple_oop_proper.php?"
+                        let prefixUrl = "https://sponline.xyz/crud/simple_oop_proper.php"
                         
                         let url = URL(string: prefixUrl)!
                         var request = URLRequest(url: url)
@@ -77,22 +71,27 @@ struct DetailView: View {
                                 URLQueryItem(name: "mode", value: "update")
                             ]
                         }
-                        
                         let query = components.url!.query
                         request.httpBody = Data(query!.utf8)
-                        URLSession.shared.dataTask(with: url) { (data,res,error) in
+                        let task = URLSession.shared.dataTask(with: request) { (data,res,error) in
                             if error != nil {
                                 
                             }
                             do {
-                                if let data = data {
-                                    let result = try JSONDecoder().decode(CrudModelOther.self, from: data )
-                                    /// check status result if success
-                                    if result.success == true  {
+                                if let data = data, let dataString = String(data: data, encoding: .utf8) {
+                                    print(data)
+                                    if(dataString.contains(successString)){
                                         selection = "home"
-                                    }else {
-                                        // alert end user something wrong with the server
+                                        
+                                    }else if(dataString.contains(errorString)){
+                                        let jsonData = dataString.data(using: .utf8)!
                                         errorAlert = true
+                                        let result = try JSONDecoder().decode(FailureModel.self, from: jsonData )
+                                        print(result.code)
+                                        print(result.message)
+                                        
+                                    }else{
+                                        print("something really wrong")
                                     }
                                 }else {
                                     print ("No Data")
@@ -103,13 +102,15 @@ struct DetailView: View {
                                 errorAlert = true
                             }
                         }
+                        task.resume()
                     },label:{
                         Text("Save")
                     }) )
         }.alert(isPresented: $errorAlert, content: {
             Alert(title: Text("System"), message: Text("System had difficulity to conenct the server . Please try again dear."))
         }) // end vstack
-    } // end zStack
+    }
+ // end zStack
 }
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
