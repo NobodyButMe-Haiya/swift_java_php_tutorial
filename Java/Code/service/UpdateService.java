@@ -2,7 +2,6 @@ package com.sponline.crud.service;
 
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 
 import androidx.fragment.app.FragmentActivity;
 
@@ -14,6 +13,7 @@ import com.google.gson.Gson;
 import com.sponline.crud.R;
 import com.sponline.crud.model.SuccessModel;
 import com.sponline.crud.model.FailureModel;
+import com.sponline.crud.setting.NetworksConnection;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +34,7 @@ public class UpdateService {
     public UpdateService(View view1, FragmentActivity fragmentActivity1) {
         view = view1;
         fragmentActivity = fragmentActivity1;
-            URL = "#your server";
+        URL = NetworksConnection.SERVER.toString();
     }
 
     public void execute(final String... strings) {

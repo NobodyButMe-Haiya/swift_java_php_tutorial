@@ -1,9 +1,11 @@
 package com.sponline.crud.model;
 
+import java.util.List;
+
 public class ReadModel {
     private Boolean success;
     private String code;
-    private DataModel dataModel;
+    private List<DataModel> dataModel;
 
     public Boolean getSuccess() {
         return success;
@@ -21,11 +23,11 @@ public class ReadModel {
         this.code = code;
     }
 
-    public DataModel getDataModel() {
+    public List<DataModel> getDataModel() {
         return dataModel;
     }
 
-    public void setDataModel(DataModel dataModel) {
+    public void setDataModel(List<DataModel> dataModel) {
         this.dataModel = dataModel;
     }
 

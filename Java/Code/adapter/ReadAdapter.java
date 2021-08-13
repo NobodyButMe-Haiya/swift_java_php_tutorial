@@ -1,6 +1,7 @@
 package com.sponline.crud.adapter;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sponline.crud.R;
 import com.sponline.crud.model.DataModel;
+import android.view.inputmethod.InputMethodManager;
+
+import androidx.fragment.app.FragmentActivity;
+import androidx.navigation.NavController;
+
+
+import java.util.List;
 
 import java.util.List;
 
@@ -19,13 +27,14 @@ public class ReadAdapter extends RecyclerView.Adapter<ReadAdapter.ReadAdapterVie
 
     private List<? extends DataModel> dataModels;
 
-    private final Context context;
+    private final FragmentActivity fragmentActivity;
+    private final View view;
+    private final NavController navController;
 
-    public ReadAdapter(Context context1) {
-        context = context1;
-
-        DataModel dataModel = new DataModel();
-
+    public ReadAdapter( View view1,FragmentActivity fragmentActivity1, NavController navController1) {
+        fragmentActivity = fragmentActivity1;
+        view = view1;
+        navController = navController1;
     }
 
     public void execute(List<DataModel> DataModels1) {
@@ -44,6 +53,18 @@ public class ReadAdapter extends RecyclerView.Adapter<ReadAdapter.ReadAdapterVie
 
         holder.Name.setText(dataModels.get(position).getName());
         holder.Age.setText(dataModels.get(position).getAge());
+
+        holder.itemView.setOnClickListener(v -> {
+
+            InputMethodManager inputMethodManager = (InputMethodManager) fragmentActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+            Bundle bundle = new Bundle();
+            bundle.putString("name", dataModels.get(position).getName());
+            bundle.putString("personId",dataModels.get(position).getPersonId());
+            navController.navigate(R.id.nav_form, bundle);
+
+        });
     }
 
     public int getItemCount() {

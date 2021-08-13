@@ -2,7 +2,7 @@ package com.sponline.crud.service;
 
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
 
@@ -12,13 +12,18 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.sponline.crud.R;
+import com.sponline.crud.adapter.ReadAdapter;
+import com.sponline.crud.model.DataModel;
+import com.sponline.crud.model.ReadModel;
 import com.sponline.crud.model.SuccessModel;
 import com.sponline.crud.model.FailureModel;
+import com.sponline.crud.setting.NetworksConnection;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
@@ -28,13 +33,16 @@ public class ReadService {
 
     private final View view;
     private final FragmentActivity fragmentActivity;
+    private final ReadAdapter readAdapter;
+
     private final String URL;
     private RequestQueue requestQueue;
 
-    public ReadService(View view1, FragmentActivity fragmentActivity1) {
+    public ReadService(View view1, FragmentActivity fragmentActivity1,ReadAdapter readAdapter1) {
         view = view1;
         fragmentActivity = fragmentActivity1;
-      URL = "#your server";
+        URL = NetworksConnection.SERVER.toString();
+        readAdapter = readAdapter1;
     }
 
     public void execute(final String... strings) {
@@ -85,28 +93,36 @@ public class ReadService {
                 final FailureModel FailureModel;
                 FailureModel = new Gson().fromJson(response, FailureModel.class);
 
-                // return default english if not supported
-                String errorMessage = FailureModel.getMessage();
-                if (FailureModel.getCode() != null) {
-                    if (Integer.parseInt(FailureModel.getCode()) == 1) {
-                        errorMessage = fragmentActivity.getString(R.string.serverErrorText);
-                    } else {
-                        errorMessage = FailureModel.getMessage();
-                    }
-                }
+
                 new SweetAlertDialog(fragmentActivity, SweetAlertDialog.ERROR_TYPE)
-                        .setTitleText(fragmentActivity.getString(R.string.errorText))
-                        .setContentText(errorMessage)
+                        .setTitleText(fragmentActivity.getString(R.string.serverErrorText))
+                        .setContentText(FailureModel.getMessage())
                         .show();
 
             } else if (response.contains(success)) {
-                final SuccessModel SuccessModel = new Gson().fromJson(response, SuccessModel.class);
-                Log.d(TAG, SuccessModel.toString());
+                final ReadModel readModel = new Gson().fromJson(response, ReadModel.class);
 
-                new SweetAlertDialog(fragmentActivity, SweetAlertDialog.SUCCESS_TYPE)
-                        .setTitleText(fragmentActivity.getString(R.string.app_name))
-                        .setContentText(fragmentActivity.getString(R.string.app_name))
-                        .show();
+                List<DataModel> dataModels;
+
+                if (readModel.getSuccess()) {
+                    // Recheck sync model
+                    dataModels = readModel.getDataModel();
+
+                    if (dataModels.size() > 0) {
+                        //bind the data to adapter
+                        readAdapter.execute(dataModels);
+                        readAdapter.notifyDataSetChanged();
+                        Log.d(TAG, "Assign data to adapter");
+                    } else {
+                        // message to end user record not found.sweet android
+                        Log.d(TAG, "record not found: CardTopUp history");
+                        // don't leave empty white page..just give some information
+                        TextView textView = view.findViewById(R.id.emptyRecordReload);
+                        textView.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    Log.d(TAG, "something wrong getting  list");
+                }
             } else {
                 Log.d(TAG, "unknown error");
             }
