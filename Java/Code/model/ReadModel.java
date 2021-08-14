@@ -5,7 +5,7 @@ import java.util.List;
 public class ReadModel {
     private Boolean success;
     private String code;
-    private List<DataModel> dataModel;
+    private List<DataModel> data;
 
     public Boolean getSuccess() {
         return success;
@@ -23,20 +23,11 @@ public class ReadModel {
         this.code = code;
     }
 
-    public List<DataModel> getDataModel() {
-        return dataModel;
+    public List<DataModel> getData() {
+        return data;
     }
 
-    public void setDataModel(List<DataModel> dataModel) {
-        this.dataModel = dataModel;
-    }
-
-    @Override
-    public String toString() {
-        return "ReadModel{" +
-                "success=" + success +
-                ", code='" + code + '\'' +
-                ", dataModel=" + dataModel +
-                '}';
+    public void setData(List<DataModel> data) {
+        this.data = data;
     }
 }

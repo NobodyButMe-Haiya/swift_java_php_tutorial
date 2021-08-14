@@ -45,9 +45,9 @@ public class ReadService {
         readAdapter = readAdapter1;
     }
 
-    public void execute(final String... strings) {
+    public void execute() {
         // since we need more information
-        Log.d(TAG, " Note value is " + strings[1] + " dialect value=" + strings[0]);
+        Log.d(TAG,"URL:"+URL);
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
@@ -67,9 +67,8 @@ public class ReadService {
             @Override
             protected Map<String, String> getParams() {
 
-                final String ANDROID = "1";
                 Map<String, String> params = new HashMap<>();
-                params.put("mode", strings[0]);
+                params.put("mode", "read");
 
                 return params;
             }
@@ -103,11 +102,11 @@ public class ReadService {
                 final ReadModel readModel = new Gson().fromJson(response, ReadModel.class);
 
                 List<DataModel> dataModels;
-
+                Log.d(TAG, String.valueOf(readModel));
                 if (readModel.getSuccess()) {
                     // Recheck sync model
-                    dataModels = readModel.getDataModel();
-
+                    dataModels = readModel.getData();
+                    Log.d(TAG, String.valueOf(dataModels));
                     if (dataModels.size() > 0) {
                         //bind the data to adapter
                         readAdapter.execute(dataModels);

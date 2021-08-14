@@ -63,7 +63,7 @@ public class CreateService {
                 Map<String, String> params = new HashMap<>();
                 params.put("name", strings[0]);
                 params.put("age", strings[1]);
-                params.put("method", "create");
+                params.put("mode", "create");
                 return params;
             }
         };

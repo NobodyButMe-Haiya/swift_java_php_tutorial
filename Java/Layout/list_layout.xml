@@ -7,32 +7,44 @@
     <androidx.appcompat.widget.Toolbar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/float_transparent">
+        android:background="@color/gray">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <TextView
+            <Button
+                android:id="@+id/homeButton"
                 android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:includeFontPadding="true"
+                android:padding="16dp"
+                android:text="@string/homeButtonText"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                android:gravity="start|center_vertical"
+                android:background="@color/float_transparent"
+                android:visibility="invisible"/>
+            <TextView
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/homeButtonText"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:textStyle="bold" />
 
             <Button
                 android:id="@+id/createButton"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:gravity="end|center_vertical"
                 android:includeFontPadding="true"
-                android:text="@string/createText"
+                android:text="@string/createButtonText"
                 android:textAllCaps="false"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:textSize="12sp"
-                android:visibility="invisible" />
+                android:background="@color/float_transparent"/>
         </LinearLayout>
 
     </androidx.appcompat.widget.Toolbar>
@@ -41,7 +53,7 @@
         android:id="@+id/readLists"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="110dp"
+        android:layout_marginTop="20dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <ProgressBar

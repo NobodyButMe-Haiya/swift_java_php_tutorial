@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatEditText;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sponline.crud.R;
@@ -45,7 +47,7 @@ public class ReadAdapter extends RecyclerView.Adapter<ReadAdapter.ReadAdapterVie
     @Override
     public ReadAdapter.ReadAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        return new ReadAdapter.ReadAdapterViewHolder(inflater.inflate(R.layout.list_layout, parent, false));
+        return new ReadAdapter.ReadAdapterViewHolder(inflater.inflate(R.layout.list_detail_layout, parent, false));
     }
 
     @Override
@@ -53,6 +55,7 @@ public class ReadAdapter extends RecyclerView.Adapter<ReadAdapter.ReadAdapterVie
 
         holder.Name.setText(dataModels.get(position).getName());
         holder.Age.setText(dataModels.get(position).getAge());
+        holder.PersonId.setText(dataModels.get(position).getPersonId());
 
         holder.itemView.setOnClickListener(v -> {
 
@@ -61,6 +64,7 @@ public class ReadAdapter extends RecyclerView.Adapter<ReadAdapter.ReadAdapterVie
 
             Bundle bundle = new Bundle();
             bundle.putString("name", dataModels.get(position).getName());
+            bundle.putString("age",dataModels.get(position).getAge());
             bundle.putString("personId",dataModels.get(position).getPersonId());
             navController.navigate(R.id.nav_form, bundle);
 
@@ -70,15 +74,20 @@ public class ReadAdapter extends RecyclerView.Adapter<ReadAdapter.ReadAdapterVie
     public int getItemCount() {
         return dataModels == null ? 0 : dataModels.size();
     }
-
+    public void removeItem(int position) {
+        dataModels.remove(position);
+        notifyItemRemoved(position);
+    }
     static class ReadAdapterViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView Name;
         private final TextView Age;
+        private final TextView PersonId;
         ReadAdapterViewHolder(View view) {
             super(view);
             Name = itemView.findViewById(R.id.name);
             Age = itemView.findViewById(R.id.age);
+            PersonId = itemView.findViewById(R.id.personId);
         }
 
     }

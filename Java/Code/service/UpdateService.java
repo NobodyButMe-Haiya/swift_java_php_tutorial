@@ -63,7 +63,7 @@ public class UpdateService {
                 params.put("name", strings[0]);
                 params.put("age", strings[1]);
                 params.put("personId", strings[2]);
-                params.put("method", "update");
+                params.put("mode", "update");
 
                 return params;
             }

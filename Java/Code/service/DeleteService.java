@@ -4,6 +4,7 @@ import android.util.Log;
 import android.view.View;
 
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -11,6 +12,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.sponline.crud.R;
+import com.sponline.crud.adapter.ReadAdapter;
 import com.sponline.crud.model.SuccessModel;
 import com.sponline.crud.model.FailureModel;
 import com.sponline.crud.setting.NetworksConnection;
@@ -20,6 +22,7 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
@@ -30,16 +33,19 @@ public class DeleteService {
     private final FragmentActivity fragmentActivity;
     private final String URL;
     private RequestQueue requestQueue;
-
-    public DeleteService(View view1, FragmentActivity fragmentActivity1) {
+    private Integer position;
+    private ReadAdapter readAdapter;
+    public DeleteService(View view1, FragmentActivity fragmentActivity1,Integer position1,ReadAdapter readAdapter1) {
         view = view1;
         fragmentActivity = fragmentActivity1;
         URL = NetworksConnection.SERVER.toString();
+        position = position1;
+        readAdapter  = readAdapter1;
     }
 
     public void execute(final String... strings) {
         // since we need more information
-        Log.d(TAG, " Note value is " + strings[1] + " dialect value=" + strings[0]);
+        Log.d(TAG, " personId=" + strings[0]);
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
@@ -61,7 +67,7 @@ public class DeleteService {
 
                 Map<String, String> params = new HashMap<>();
                 params.put("personId", strings[0]);
-                params.put("method", "delete");
+                params.put("mode", "delete");
 
                 return params;
             }
@@ -102,11 +108,8 @@ public class DeleteService {
             } else if (response.contains(success)) {
                 final SuccessModel SuccessModel = new Gson().fromJson(response, SuccessModel.class);
                 Log.d(TAG, SuccessModel.toString());
-
-                new SweetAlertDialog(fragmentActivity, SweetAlertDialog.SUCCESS_TYPE)
-                        .setTitleText(fragmentActivity.getString(R.string.app_name))
-                        .setContentText(fragmentActivity.getString(R.string.deleteText))
-                        .show();
+                // remove from adapter if complete
+                readAdapter.removeItem(position);
             } else {
                 Log.d(TAG, "unknown error");
             }

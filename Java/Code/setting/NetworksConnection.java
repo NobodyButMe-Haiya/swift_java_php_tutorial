@@ -3,7 +3,7 @@ package com.sponline.crud.setting;
 public enum NetworksConnection {
 
     LOCAL("https://localhost/crud/simple_oop_proper.php"),
-    SERVER("#YOUR SERVER");
+    SERVER("#YourServer");
 
 
     private String value;

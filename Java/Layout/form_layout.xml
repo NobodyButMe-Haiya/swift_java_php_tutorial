@@ -11,7 +11,7 @@
         <androidx.appcompat.widget.Toolbar
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/float_transparent">
+            android:background="@color/gray">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -21,7 +21,6 @@
                     android:id="@+id/homeButton"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
                     android:includeFontPadding="true"
                     android:padding="16dp"
                     android:text="@string/homeButtonText"
@@ -32,7 +31,7 @@
                     android:background="@color/float_transparent" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center"
@@ -45,7 +44,6 @@
                     android:id="@+id/saveButton"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
                     android:gravity="end|center_vertical"
                     android:includeFontPadding="true"
                     android:padding="16dp"
