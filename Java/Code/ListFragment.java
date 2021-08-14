@@ -1,6 +1,8 @@
 package com.sponline.crud;
 
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,9 +24,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.sponline.crud.adapter.ReadAdapter;
+import com.sponline.crud.helper.SwipeHelper;
 import com.sponline.crud.service.DeleteService;
 import com.sponline.crud.service.ReadService;
 
+import java.util.List;
 import java.util.Objects;
 
 public class ListFragment extends Fragment {
@@ -77,23 +81,20 @@ public class ListFragment extends Fragment {
         ReadService readService = new ReadService(view,fragmentActivity,readAdapter);
         readService.execute();
 
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT) {
+        new SwipeHelper(recyclerView) {
             @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                return false;
+            public void instantiateUnderlayButton(RecyclerView.ViewHolder viewHolder, List<UnderlayButton> underlayButtons) {
+                underlayButtons.add(new SwipeHelper.UnderlayButton(fragmentActivity,
+                        "Delete",
+                        Color.parseColor("#c80303")));
             }
 
             @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-
-                DeleteService deleteService  = new DeleteService(view,fragmentActivity,viewHolder.getAdapterPosition(),readAdapter);
+            public void swipeToDelete(int pos, RecyclerView.ViewHolder viewHolder) {
+                DeleteService deleteService  = new DeleteService(view,fragmentActivity,pos,readAdapter);
                 TextView textView  = viewHolder.itemView.findViewById(R.id.personId);
                 deleteService.execute(textView.getText().toString());
-
-                // seem we need input hidden
-
             }
-        }).attachToRecyclerView(recyclerView);
-
+        };
     }
 }
