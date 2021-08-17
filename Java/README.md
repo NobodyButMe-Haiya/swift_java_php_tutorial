@@ -1,1 +1,1 @@
-This is trial mode . as final, we will release it.
+this is stable version
