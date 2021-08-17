@@ -1,10 +1,10 @@
-# swift_java_php_tutorial
+# swift java php csharp react-native tutorial
 
 ** This will be temp tutorial for people want to link their web
 to the mobile apps . 
 
 It will be basic CRUD - create read update delete 
-It will teach you how to use proper PHP code rather than after market
+It will teach you how to use proper PHP,asp.net core code rather than after market
 LARAVEL , PDO . If you understand the basic, doesn't matter what framework
 you used it will be same method 
 
