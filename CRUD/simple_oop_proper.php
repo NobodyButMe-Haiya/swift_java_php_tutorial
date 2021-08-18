@@ -413,6 +413,7 @@ class SimpleOopProper
 }
 
 header('Content-Type: application/json');
+header("Access-Control-Allow-Origin: *"); // this is to prevent from javascript given cors error
 
 $mode = filter_input(INPUT_POST, "mode", FILTER_SANITIZE_STRING);
 
