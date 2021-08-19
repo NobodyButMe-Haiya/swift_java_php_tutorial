@@ -4,25 +4,13 @@ import { useNavigation } from '@react-navigation/native';
 import { ListItem, Avatar, Icon } from 'react-native-elements'
 import { Component } from 'react';
 import axios from 'axios';
-/**
- const list = [
- {
-    name: 'holand',
-    age: '23'
-  },
- {
-    name: 'Manahche',
-    age: '34'
-  },
- ]
- **/
-const list = [];
 
 async function getList() {
     try {
-        const {data:response} = await axios.get("#")
+        const { data: response } = await axios.get("#")
         return response.data
     }
+
     catch (error) {
         console.log(error);
     }
@@ -30,35 +18,62 @@ async function getList() {
 function ListScreen() {
     const navigation = useNavigation();
 
-    let [list, setList] = useState('');
+    let [list, setList] = useState([]);
 
     useEffect(() => {
         let mounted = true;
-        getList()
-            .then(items => {
-                if (mounted) {
-                    setList(items)
-                }
-            })
+        const unsubscribe = navigation.addListener('focus', () => {
+            // dam refersh .. no cached
+            getList()
+                .then(items => {
+                    if (mounted) {
+                        setList(items)
+                    }
+                })
+        });
+        console.log("are dam it refersg" )
+
         return () => mounted = false;
     }, [])
-    function click() {
-        navigation.navigate("Form")
-    }
-    function deleteRecord() {
-        //later all change to fetch
-        axios.post("#", {
-            token: this.state.token,
-            start: start,
-            end: end,
-            from: 'mobile'
-        }).then(function (output) {
-            console.log(output);
-            output = output.data;
-            if (output.Success == true) {
+    // this type of function will load in the loop same as swift ui bugs.  it should be load upon clicked
+    function click(name, age, personId) {
+        console.log("name click event : " + name);
+        console.log("age : " + age);
+        console.log("personId : " + personId);
 
+
+    }
+    const formPage = (name, age, personId) => () => {
+        console.log("name click event : " + name);
+        console.log("age : " + age);
+        console.log("personId : " + personId);
+        navigation.navigate("Form", {
+            nameRoute: name,
+            ageRoute: age,
+            personIdRoute: personId
+        })
+    }
+    const deleteRecord = (personId) => () => {
+
+
+        //later all change to fetch
+
+        var formData = new FormData();
+        formData.append("mode","delete");
+        formData.append("personId",personId);
+        axios.post('#',formData).then(function (output) {
+
+            if (output.data.success == true) {
+                console.log("record deleted")
+                // reset and query back  ?
+                const filteredData = list.filter(item => item.personId !== personId);
+                setList(filteredData)
+
+                // this is for purpose refresh and clear them item. rather then recursive better refresh
             } else {
                 // something sweet alert later
+                console.log("something wrong")
+
             }
         }).catch(function (error) {
             console.log(error)
@@ -66,6 +81,7 @@ function ListScreen() {
     }
     return (<View>
         {
+
             list.map((l) => (
                 <ListItem.Swipeable key={l.personId} bottomDivider
 
@@ -74,20 +90,20 @@ function ListScreen() {
                                             title="Delete"
                                             icon={{ name: 'delete', color: 'white' }}
                                             buttonStyle={{ maxHeight: '100%', backgroundColor: 'red' }}
-                                            onPress={click}
+                                            onPress={deleteRecord(l.personId)}
                                         />
                                     }>
-                    <TouchableOpacity onPress={click} style={{ flex: 1 }}>
+                    <TouchableOpacity onPress={formPage(l.name, l.age, l.personId)} style={{ flex: 1 }}>
                         <View>
                             <Text>{l.name}</Text>
                             <Text>{l.age}</Text>
                         </View>
                     </TouchableOpacity>
                 </ListItem.Swipeable>
-
             ))
-        }
 
+
+        }
     </View>)
 }
 export default ListScreen
