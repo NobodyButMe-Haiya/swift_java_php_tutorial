@@ -21,3 +21,5 @@ The Sample will be record, the call API will be using POSTMAN
 detect cross domain problem . Make a sample javascript /jquery 
 to test your API.
 
+Future all this project will have own repository for more easy viewing. 
+
