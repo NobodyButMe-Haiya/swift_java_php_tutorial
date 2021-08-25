@@ -1,0 +1,26 @@
+@page
+@inject Microsoft.Extensions.Configuration.IConfiguration config
+@{
+    // if everything can be access here awesome.. old days suck
+    //Server=localhost;Database=youtuber;Uid=youtuber;Pwd=123456;SSL Mode=None
+    var connection = config.GetSection("ConnectionStrings:DefaultConnection").Value;
+    List<PersonModel> data = new();
+    try
+    {
+        Crud crud = new(connection);
+        data = crud.Read();
+
+    }
+    catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine(ex.Message);
+    }
+}
+<select name="personId" id="personId">
+
+    @foreach (var item in data)
+    {
+        <option value="@item.personId">@item.name</option>
+    }
+
+</select>
