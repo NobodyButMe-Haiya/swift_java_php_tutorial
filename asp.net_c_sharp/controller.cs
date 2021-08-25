@@ -19,90 +19,117 @@ namespace sharp_crud
         {
             _configuration = configuration;
         }
-        public IActionResult Create()
-        {
-            var name = Request.Form["name"];
-            var age = Request.Form["age"];
-            var method = Request.Form["method"];
 
-            string status = "";
-            string code = "";
-            if (method == "create") {
-                Crud crud = new(_configuration.GetSection("ConnectionStrings:DefaultConnection").Value);
-                string[] x = crud.Create(name,Convert.ToInt32(age)).Split("|");
-                status = x[0];
-                code = x[1];
-            }
-            else
-            {
-                status = "false";
-                code = "later enum";
-            }
-            return Ok(new { status, code = code  });
-        }
-        public IActionResult Read()
+        // GET: api/values
+        //https://localhost:5001/api/values?mode=hack&joke=takkira
+        // tutorial said mvc cannot be use old QueryString And Form.. not .. We do our own way :p
+        [HttpGet]
+        public ActionResult Get()
         {
-            var method = Request.Form["method"];
+            bool status = false ;
+            List<PersonModel> data = new();
 
-            string status = "";
-            string code = "";
-            if (method == "read")
-            {
-                Crud crud = new(_configuration.GetSection("ConnectionStrings:DefaultConnection").Value);
-                string[] x = crud.Read().Split("|");
-                status = x[0];
-                code = x[1];
-            }
-            else
-            {
-                status = "false";
-                code = "later enum";
-            }
-            return Ok(new { status, code = code });
-        }
-        public IActionResult Update()
-        {
-            var name = Request.Form["name"];
-            var age = Request.Form["age"];
-            var personId = Request.Form["personId"];
-            var method = Request.Form["method"];
-
-            string status = "";
-            string code = "";
-            if (method == "update")
-            {
-                Crud crud = new(_configuration.GetSection("ConnectionStrings:DefaultConnection").Value);
-                string[] x = crud.Update(name, Convert.ToInt32(age),Convert.ToInt32(personId)).Split("|");
-                status = x[0];
-                code = x[1];
-            }
-            else
-            {
-                status = "false";
-                code = "later enum";
-            }
-            return Ok(new { status = status, code = code });
-        }
-        public IActionResult Delete()
-        {
-            var personId = Request.Form["personId"];
-            var method = Request.Form["method"];
-
-            string status = "";
+            string mode = Request.Query["mode_get"];
             string code;
-            if (method == "delete")
+            if (mode == "read")
             {
-                Crud crud = new(_configuration.GetSection("ConnectionStrings:DefaultConnection").Value);
-                string[] x = crud.Delete(Convert.ToInt32(personId)).Split("|");
-                status = x[0];
-                code = x[1];
+                try
+                {
+                    Crud crud = new(_configuration.GetSection("ConnectionStrings:DefaultConnection").Value);
+                    data = crud.Read();
+                    code = ReturnCode.READ_SUCCESS.ToString();
+                    status = true;
+                }
+                catch (Exception ex)
+                {
+                    code = ex.Message;
+                }
             }
             else
             {
-                status = "false";
-                code = "later enum";
+                code = ReturnCode.QUERY_FAILURE.ToString();
+                status = false;
             }
-            return Ok(new { status, code = code });
+            // it will return json
+            return Ok(new { status, code = code,data = data });
+        }
+
+        // POST: api/values
+        //https://localhost:5001/api/values
+
+        [HttpPost]
+        public ActionResult Post()
+        {
+
+            bool status = false;
+            List<PersonModel> data = new();
+
+            string mode = Request.Query["mode_get"];
+
+            var name = Request.Form["name"];
+            var age = Request.Form["age"];
+            var personId = Request.Form["personId"];
+
+            string code;
+            Crud crud = new(_configuration.GetSection("ConnectionStrings:DefaultConnection").Value);
+
+            switch (mode)
+            {
+                case "create":
+                    try
+                    {
+                        string[] x = crud.Create(name, Convert.ToInt32(age)).Split("|");
+                        code = ReturnCode.CREATE_SUCCESS.ToString();
+                        status = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        code = ex.Message;
+                    }
+                    break;
+                case "read":
+                    try
+                    {
+                        data = crud.Read();
+                        code = ReturnCode.READ_SUCCESS.ToString();
+                        status = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        code = ex.Message;
+                    }
+                    break;
+                case "update":
+                    try
+                    {
+                        string[] x = crud.Update(name, Convert.ToInt32(age), Convert.ToInt32(personId)).Split("|");
+                        code = ReturnCode.UPDATE_SUCCESS.ToString();
+                        status = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        code = ex.Message;
+                    }
+                    break;
+                case "delete":
+                    try
+                    {
+                        string[] x = crud.Delete(Convert.ToInt32(personId)).Split("|");
+                        code = ReturnCode.DELETE_SUCCESS.ToString();
+                        status = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        code = ex.Message;
+                    }
+                    break;
+                default:
+                    code = ReturnCode.ACCESS_DENIED_NO_MODE.ToString();
+                    status = false;
+                    break;
+            }
+
+            return Ok(new { status, code = code, data = data });
         }
     }
 }

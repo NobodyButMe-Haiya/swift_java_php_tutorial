@@ -12,6 +12,17 @@ namespace sharp_crud
         public string age { get; set; }
         public string personId { get; set; }
     }
+    public enum ReturnCode
+    {
+        CONNECTION_ERROR = 100,
+        ACCESS_DENIED_NO_MODE = 404,
+        ACCESS_DENIED = 500,
+        CREATE_SUCCESS = 101,
+        READ_SUCCESS = 201,
+        UPDATE_SUCCESS = 301,
+        DELETE_SUCCESS = 401,
+        QUERY_FAILURE = 601
+    }
     public class Crud
     {
         private string _connectionString { get; set; }
@@ -23,9 +34,13 @@ namespace sharp_crud
         {
             return new MySqlConnection(_connectionString);
         }
-        public string Create(String name, int age)
+        /// <summary>
+        /// Create
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="age"></param>
+        public void Create(String name, int age)
         {
-            String json = "";
             MySqlTransaction transaction = null;
             using(MySqlConnection connection = GetConnection())
             {
@@ -39,17 +54,19 @@ namespace sharp_crud
                     command.ExecuteNonQuery();
                     transaction.Commit();
                     command.Dispose();
-                    json = "Record Inserted";
                 }catch(MySqlException ex)
                 {
-                    json = "success|"+ex.Message;
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
                 }
             }
-            return "success|"+json;
         }
-        public string Read()
+        /// <summary>
+        /// Read
+        /// </summary>
+        /// <returns></returns>
+        public List<PersonModel> Read()
         {
-            String json = "";
             List<PersonModel> personModels = new List<PersonModel>();
             using (MySqlConnection connection = GetConnection())
             {
@@ -70,21 +87,24 @@ namespace sharp_crud
                                 personId = reader["personId"].ToString()
                             });
                         }
-
-                        // so we convert the object to json string;
-                        json = JsonConvert.SerializeObject(personModels);
                     }
                 }
                 catch (MySqlException ex)
                 {
-                    json = "success|" + ex.Message;
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
                 }
             }
-            return "success|" + json;
+            return personModels;
         }
-        public string Update(string name, int age,int personId)
+        /// <summary>
+        /// Update
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="age"></param>
+        /// <param name="personId"></param>
+        public void Update(string name, int age,int personId)
         {
-            String json = "";
             MySqlTransaction transaction = null;
             using (MySqlConnection connection = GetConnection())
             {
@@ -100,18 +120,20 @@ namespace sharp_crud
                     command.ExecuteNonQuery();
                     transaction.Commit();
                     command.Dispose();
-                    json = "Record Updated";
                 }
                 catch (MySqlException ex)
                 {
-                    json = "success|" + ex.Message;
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
                 }
             }
-            return "success|" + json;
         }
-        public string Delete(int personId)
+        /// <summary>
+        ///  Delete
+        /// </summary>
+        /// <param name="personId"></param>
+        public void Delete(int personId)
         {
-            String json = "";
             MySqlTransaction transaction = null;
             using (MySqlConnection connection = GetConnection())
             {
@@ -124,14 +146,13 @@ namespace sharp_crud
                     command.ExecuteNonQuery();
                     transaction.Commit();
                     command.Dispose();
-                    json = "Record Deleted";
                 }
                 catch (MySqlException ex)
                 {
-                    json = "success|" + ex.Message;
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
                 }
             }
-            return "success|" + json;
         }
     }
 }
