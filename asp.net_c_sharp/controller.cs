@@ -8,9 +8,8 @@ using Microsoft.Extensions.Configuration;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace sharp_crud
+namespace YoutubeCrud.Controllers
 {
-
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
@@ -26,7 +25,7 @@ namespace sharp_crud
         [HttpGet]
         public ActionResult Get()
         {
-            bool status = false ;
+            bool status = false;
             List<PersonModel> data = new();
 
             string mode = Request.Query["mode_get"];
@@ -51,7 +50,7 @@ namespace sharp_crud
                 status = false;
             }
             // it will return json
-            return Ok(new { status, code = code,data = data });
+            return Ok(new { status, code = code, data = data });
         }
 
         // POST: api/values
@@ -78,7 +77,7 @@ namespace sharp_crud
                 case "create":
                     try
                     {
-                        string[] x = crud.Create(name, Convert.ToInt32(age)).Split("|");
+                        crud.Create(name, Convert.ToInt32(age));
                         code = ReturnCode.CREATE_SUCCESS.ToString();
                         status = true;
                     }
@@ -102,7 +101,7 @@ namespace sharp_crud
                 case "update":
                     try
                     {
-                        string[] x = crud.Update(name, Convert.ToInt32(age), Convert.ToInt32(personId)).Split("|");
+                        crud.Update(name, Convert.ToInt32(age), Convert.ToInt32(personId));
                         code = ReturnCode.UPDATE_SUCCESS.ToString();
                         status = true;
                     }
@@ -114,7 +113,7 @@ namespace sharp_crud
                 case "delete":
                     try
                     {
-                        string[] x = crud.Delete(Convert.ToInt32(personId)).Split("|");
+                        crud.Delete(Convert.ToInt32(personId));
                         code = ReturnCode.DELETE_SUCCESS.ToString();
                         status = true;
                     }

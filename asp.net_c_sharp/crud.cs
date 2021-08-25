@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
-
-namespace sharp_crud
+namespace YoutubeCrud
 {
-    // kinda lazy to create new file
     public class PersonModel
     {
         public string name { get; set; }
@@ -42,19 +39,20 @@ namespace sharp_crud
         public void Create(String name, int age)
         {
             MySqlTransaction transaction = null;
-            using(MySqlConnection connection = GetConnection())
+            using (MySqlConnection connection = GetConnection())
             {
                 try
                 {
                     connection.Open();
                     transaction = connection.BeginTransaction();
-                    MySqlCommand command = new MySqlCommand("INSERT INTO person VALUES (null,@name, @age)");
+                    MySqlCommand command = new MySqlCommand("INSERT INTO person VALUES (null,@name, @age)",connection);
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@age", age);
                     command.ExecuteNonQuery();
                     transaction.Commit();
                     command.Dispose();
-                }catch(MySqlException ex)
+                }
+                catch (MySqlException ex)
                 {
                     System.Diagnostics.Debug.WriteLine(ex.Message);
                     throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
@@ -74,7 +72,7 @@ namespace sharp_crud
                 {
                     connection.Open();
 
-                    MySqlCommand command = new MySqlCommand("select * from person");
+                    MySqlCommand command = new MySqlCommand("select * from person",connection);
 
                     using (var reader = command.ExecuteReader())
                     {
@@ -103,7 +101,7 @@ namespace sharp_crud
         /// <param name="name"></param>
         /// <param name="age"></param>
         /// <param name="personId"></param>
-        public void Update(string name, int age,int personId)
+        public void Update(string name, int age, int personId)
         {
             MySqlTransaction transaction = null;
             using (MySqlConnection connection = GetConnection())
@@ -112,7 +110,7 @@ namespace sharp_crud
                 {
                     connection.Open();
                     transaction = connection.BeginTransaction();
-                    MySqlCommand command = new MySqlCommand("UPDATE person SET name = ?,age = ? WHERE  personId = ?");
+                    MySqlCommand command = new MySqlCommand("UPDATE person SET name = ?,age = ? WHERE  personId = ?",connection);
 
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@age", age);
@@ -141,7 +139,7 @@ namespace sharp_crud
                 {
                     connection.Open();
                     transaction = connection.BeginTransaction();
-                    MySqlCommand command = new MySqlCommand("DELETE FROM person WHERE personId = ?");
+                    MySqlCommand command = new MySqlCommand("DELETE FROM person WHERE personId = ?",connection);
                     command.Parameters.AddWithValue("@personId", personId);
                     command.ExecuteNonQuery();
                     transaction.Commit();
