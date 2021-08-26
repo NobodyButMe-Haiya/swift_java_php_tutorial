@@ -84,9 +84,8 @@ if (strlen($string) > 0) {
                        type="text" value="<?php echo $row["age"]; ?>"/>
             </td>
             <td>
-                <div class="btn-group" role="group" aria-label="Form Button"
-                     onclick="updateRecord(<?php echo $row["personId"]; ?>)">
-                    <button type="button" class="btn btn-warning">
+                <div class="btn-group" role="group" aria-label="Form Button">
+                    <button type="button" class="btn btn-warning" onclick="updateRecord(<?php echo $row["personId"]; ?>)">
                         <i class="bi bi-file-earmark-text"></i>
                         UPDATE
                     </button>

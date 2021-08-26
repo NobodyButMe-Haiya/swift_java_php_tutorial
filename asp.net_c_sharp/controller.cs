@@ -49,8 +49,9 @@ namespace YoutubeCrud.Controllers
                 code = ReturnCode.QUERY_FAILURE.ToString();
                 status = false;
             }
-            // it will return json
-            return Ok(new { status, code = code, data = data });
+            // it will return json charp enum bugs
+            int code_return = Convert.ToInt32(code);
+            return Ok(new { status, code = code_return, data = data });
         }
 
         // POST: api/values
@@ -63,7 +64,7 @@ namespace YoutubeCrud.Controllers
             bool status = false;
             List<PersonModel> data = new();
 
-            string mode = Request.Query["mode_get"];
+            string mode = Request.Form["mode"];
 
             var name = Request.Form["name"];
             var age = Request.Form["age"];
@@ -78,7 +79,8 @@ namespace YoutubeCrud.Controllers
                     try
                     {
                         crud.Create(name, Convert.ToInt32(age));
-                        code = ReturnCode.CREATE_SUCCESS.ToString();
+                        // if direct it will output string lol
+                        code = ((int)ReturnCode.CREATE_SUCCESS).ToString();
                         status = true;
                     }
                     catch (Exception ex)
@@ -90,7 +92,7 @@ namespace YoutubeCrud.Controllers
                     try
                     {
                         data = crud.Read();
-                        code = ReturnCode.READ_SUCCESS.ToString();
+                        code = ((int)ReturnCode.READ_SUCCESS).ToString();
                         status = true;
                     }
                     catch (Exception ex)
@@ -102,7 +104,7 @@ namespace YoutubeCrud.Controllers
                     try
                     {
                         crud.Update(name, Convert.ToInt32(age), Convert.ToInt32(personId));
-                        code = ReturnCode.UPDATE_SUCCESS.ToString();
+                        code = ((int)ReturnCode.UPDATE_SUCCESS).ToString();
                         status = true;
                     }
                     catch (Exception ex)
@@ -114,7 +116,7 @@ namespace YoutubeCrud.Controllers
                     try
                     {
                         crud.Delete(Convert.ToInt32(personId));
-                        code = ReturnCode.DELETE_SUCCESS.ToString();
+                        code = ((int)ReturnCode.DELETE_SUCCESS).ToString();
                         status = true;
                     }
                     catch (Exception ex)
@@ -123,12 +125,18 @@ namespace YoutubeCrud.Controllers
                     }
                     break;
                 default:
-                    code = ReturnCode.ACCESS_DENIED_NO_MODE.ToString();
+                    code = ((int)ReturnCode.ACCESS_DENIED_NO_MODE).ToString();
                     status = false;
                     break;
             }
-
-            return Ok(new { status, code = code, data = data });
+            int code_return;
+            bool success = int.TryParse(code, out code_return);
+            if (!success)
+            {
+                // server error
+                code_return = 500;
+            }
+            return Ok(new { status, code = code_return, data = data });
         }
     }
 }
