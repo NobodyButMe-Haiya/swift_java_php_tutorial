@@ -1,190 +1,156 @@
-@page
-@inject Microsoft.Extensions.Configuration.IConfiguration config
-@{
-    //prevent cache problem
-    Random random = new Random();
-    int num = random.Next(1000);
-    // if everything can be access here awesome.. old days suck
-    //Server=localhost;Database=youtuber;Uid=youtuber;Pwd=123456;SSL Mode=None
-    var connection = config.GetSection("ConnectionStrings:DefaultConnection").Value;
-    List<PersonModel> data = new();
-    try
-    {
-        Crud crud = new(connection);
-        data = crud.Read();
-
-    }
-    catch (Exception ex)
-    {
-        System.Diagnostics.Debug.WriteLine(ex.Message);
-    }
-    var notification = "";
-
-    if (ViewBag.notification != null)
-    {
-        if (ViewBag.notification.Length > 0)
-        {
-            notification = ViewBag.notification;
-        }
-    }
-    var stringNotification = "";
-    switch (notification)
-    {
-        case "createSuccess":
-            stringNotification = "You have create a record";
-            break;
-        case "updateSuccess":
-            stringNotification = "You have updated a record";
-            break;
-        case "deleteSuccess":
-            stringNotification = "You have delete a record";
-            break;
-    }
-}
-@if (stringNotification.Length > 0)
+using System;
+using System.Collections.Generic;
+using MySql.Data.MySqlClient;
+namespace YoutubeCrud
 {
-    <div class="alert alert-primary" role="alert">
-        @stringNotification
-    </div>
-}
-
-<table class="table table-striped">
-    <thead class="table-light">
-        <tr>
-            <th>#</th>
-            <td>
-                <input class="form-control" id="name" type="text" />
-            </td>
-            <td>
-                <input style="text-align: right" class="form-control" id="age" type="text" />
-            </td>
-            <td>
-                <button type="button" class="btn btn-success" onclick="createRecord()">
-                    <i class="bi bi-plus-circle"></i>
-                    NEW
-                </button>
-            </td>
-        </tr>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">NAME</th>
-            <th scope="col">AGE</th>
-            <th scope="col">ACTION</th>
-        </tr>
-    </thead>
-    <tbody>
-
-
-        @foreach (var item in data)
+    public class PersonModel
+    {
+        public string name { get; set; }
+        public string age { get; set; }
+        public string personId { get; set; }
+    }
+    public enum ReturnCode
+    {
+        CONNECTION_ERROR = 100,
+        ACCESS_DENIED_NO_MODE = 404,
+        ACCESS_DENIED = 500,
+        CREATE_SUCCESS = 101,
+        READ_SUCCESS = 201,
+        UPDATE_SUCCESS = 301,
+        DELETE_SUCCESS = 401,
+        QUERY_FAILURE = 601
+    }
+    public class Crud
+    {
+        private string _connectionString { get; set; }
+        public Crud(String connectionString)
         {
-            <tr>
-                <th scope="row">
-                    <?php echo $row["personId"]; ?>
-                </th>
-                <td>
-                    <input class="form-control" id="@item.personId-name" type="text"
-                           value="@item.name" />
-                </td>
-                <td>
-                    <input style="text-align: right" class="form-control" id="@item.personId-age"
-                           type="text" value="@item.age" />
-                </td>
-                <td>
-                    <div class="btn-group" role="group" aria-label="Form Button"
-                         >
-                        <button type="button" class="btn btn-warning" onclick="updateRecord(@item.personId)">
-                            <i class="bi bi-file-earmark-text"></i>
-                            UPDATE
-                        </button>
-                        <button type="button" class="btn btn-danger"
-                                onclick="deleteRecord(@item.personId)">
-                            <i class="bi bi-trash"></i>
-                            DELETE
-                        </button>
-                    </div>
-                </td>
-            </tr>
+            _connectionString = connectionString;
         }
-    </tbody>
-</table>
-<script>// at here we try to be native as possible and you can use url to ease change the which one you prefer
-    let url = "https://localhost:5001/api/values"; // api url
-    let home = "@Url.RouteUrl(ViewContext.RouteData.Values)";
-    function createRecord() {
-        const xmlHttpRequest = new XMLHttpRequest();
-        xmlHttpRequest.open("POST", url);
-        xmlHttpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xmlHttpRequest.onreadystatechange = function () {
-            if (xmlHttpRequest.readyState === 4) {
-                if (xmlHttpRequest.status === 200) {
-                    console.log("Request 200 : " + xmlHttpRequest.responseText)
-                    const obj = JSON.parse(xmlHttpRequest.responseText);
-                    if (obj.code === 101) {
-                        console.log("Create Success")
-                        location.assign(home + "?notification=createSuccess&rand=@num")
-                        return false;
-                    } else {
-                        // popup saying error
-                        console.log("error message : " + obj.message + "Error Code : " + obj.code)
-                    }
-                } else {
-                    console.log("Error", xmlHttpRequest.statusText);
+        private MySqlConnection GetConnection()
+        {
+            return new MySqlConnection(_connectionString);
+        }
+        /// <summary>
+        /// Create
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="age"></param>
+        public void Create(String name, int age)
+        {
+            MySqlTransaction transaction = null;
+            using (MySqlConnection connection = GetConnection())
+            {
+                try
+                {
+                    connection.Open();
+                    transaction = connection.BeginTransaction();
+                    MySqlCommand command = new MySqlCommand("INSERT INTO person VALUES (null,@name, @age)",connection);
+                    command.Parameters.AddWithValue("@name", name);
+                    command.Parameters.AddWithValue("@age", age);
+                    command.ExecuteNonQuery();
+                    transaction.Commit();
+                    command.Dispose();
+                }
+                catch (MySqlException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
                 }
             }
         }
-        xmlHttpRequest.send("&mode=create&name=" + document.getElementById("name").value + "&age=" + document.getElementById("age").value);
+        /// <summary>
+        /// Read
+        /// </summary>
+        /// <returns></returns>
+        public List<PersonModel> Read()
+        {
+            List<PersonModel> personModels = new List<PersonModel>();
+            using (MySqlConnection connection = GetConnection())
+            {
+                try
+                {
+                    connection.Open();
 
+                    MySqlCommand command = new MySqlCommand("select * from person",connection);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            personModels.Add(new PersonModel()
+                            {
+                                name = reader["name"].ToString(),
+                                age = reader["age"].ToString(),
+                                personId = reader["personId"].ToString()
+                            });
+                        }
+                    }
+                }
+                catch (MySqlException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
+                }
+            }
+            return personModels;
+        }
+        /// <summary>
+        /// Update
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="age"></param>
+        /// <param name="personId"></param>
+        public void Update(string name, int age, int personId)
+        {
+            MySqlTransaction transaction = null;
+            using (MySqlConnection connection = GetConnection())
+            {
+                try
+                {
+                    connection.Open();
+                    transaction = connection.BeginTransaction();
+                    MySqlCommand command = new MySqlCommand("UPDATE person SET name = ?,age = ? WHERE  personId = ?",connection);
+
+                    command.Parameters.AddWithValue("@name", name);
+                    command.Parameters.AddWithValue("@age", age);
+                    command.Parameters.AddWithValue("@personId", personId);
+                    command.ExecuteNonQuery();
+                    transaction.Commit();
+                    command.Dispose();
+                }
+                catch (MySqlException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
+                }
+            }
+        }
+        /// <summary>
+        ///  Delete
+        /// </summary>
+        /// <param name="personId"></param>
+        public void Delete(int personId)
+        {
+            MySqlTransaction transaction = null;
+            using (MySqlConnection connection = GetConnection())
+            {
+                try
+                {
+                    connection.Open();
+                    transaction = connection.BeginTransaction();
+                    MySqlCommand command = new MySqlCommand("DELETE FROM person WHERE personId = ?",connection);
+                    command.Parameters.AddWithValue("@personId", personId);
+                    command.ExecuteNonQuery();
+                    transaction.Commit();
+                    command.Dispose();
+                }
+                catch (MySqlException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    throw new Exception(ReturnCode.QUERY_FAILURE.ToString());
+                }
+            }
+        }
     }
-
-    function updateRecord(personId) {
-        const xmlHttpRequest = new XMLHttpRequest();
-        xmlHttpRequest.open("POST", url);
-        xmlHttpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xmlHttpRequest.onreadystatechange = function () {
-            if (xmlHttpRequest.readyState === 4) {
-                if (xmlHttpRequest.status === 200) {
-                    console.log("Request 200 : " + xmlHttpRequest.responseText)
-                    const obj = JSON.parse(xmlHttpRequest.responseText);
-                    if (obj.code === 301) {
-                        console.log("Update Success")
-                        location.assign(home + "?notification=updateSuccess&rand=@num&date=" + new Date().getTime())
-                        return false;
-                    } else {
-                        // popup saying error
-                        console.log("error message : " + obj.message + "Error Code : " + obj.code)
-                    }
-
-                } else {
-                    console.log("Error", xmlHttpRequest.statusText);
-                }
-            }
-        }
-        xmlHttpRequest.send("&mode=update&&personId=" + personId + "&name=" + document.getElementById(personId + "-name").value + "&age=" + document.getElementById(personId + "-age").value);
-
-    }
-
-    function deleteRecord(personId) {
-        const xmlHttpRequest = new XMLHttpRequest();
-        xmlHttpRequest.open("POST", url);
-        xmlHttpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xmlHttpRequest.onreadystatechange = function () {
-            if (xmlHttpRequest.readyState === 4) {
-                if (xmlHttpRequest.status === 200) {
-                    console.log("Request 200 : " + xmlHttpRequest.responseText)
-                    const obj = JSON.parse(xmlHttpRequest.responseText);
-                    if (obj.code === 401) {
-                        console.log("Delete Success")
-                        location.assign(home + "?miau=1&notification=deleteSuccess&rand=@num")
-                        return false;
-                    } else {
-                        // popup saying error
-                        console.log("error message : " + obj.message + "Error Code : " + obj.code)
-                    }
-                } else {
-                    console.log("Error", xmlHttpRequest.statusText);
-                }
-            }
-        }
-        xmlHttpRequest.send("&mode=delete&personId=" + personId);
-
-    }</script>
+}
