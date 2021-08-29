@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Button, View, Text, TouchableOpacity } from 'react-native';
+import {  View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ListItem, Avatar, Icon } from 'react-native-elements'
-import { Component } from 'react';
+import { ListItem, Button } from 'react-native-elements'
 import axios from 'axios';
 
 async function getList() {
